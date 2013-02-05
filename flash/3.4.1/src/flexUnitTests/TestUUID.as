@@ -21,7 +21,7 @@ package flexUnitTests
 	import org.flexunit.token.AsyncTestToken;
 	
 	
-	public class TestTime
+	public class TestUUID
 	{		
 		public var pn:Pn;
 		public var asyncFun:Function;
@@ -29,21 +29,14 @@ package flexUnitTests
 		[Before(async)]
 		public function setUp():void
 		{
-			this.pn = Pn.instance;
-			PrepareTesting.PnConfig(this.pn);
-			
-			//Pn.init process should be done
-			//in 500 minseconds
-			//Async.proceedOnEvent(this, pn, PnEvent.INIT, 500); 
-			
-			Async.delayCall(this, RequestTime, 500);
+			pn = Pn.instance;
+			PrepareTesting.PnConfig(pn);
 		}
 		
 		[After(async)]
 		public function tearDown():void
 		{
-			pn.removeEventListener(PnEvent.TIME, asyncFun, false);
-			var a:Boolean = pn.hasEventListener(PnEvent.TIME);
+			pn.removeEventListener(PnEvent.INIT, asyncFun, false);
 		}
 		
 		[BeforeClass]
@@ -57,37 +50,21 @@ package flexUnitTests
 		}
 		
 		[Test(async, timeout=5000)]
-		public function TestTimeToken():void
+		public function TestUUIDLongerThan10():void
 		{
-			asyncFun = Async.asyncHandler(this, handleIntendedResult, 2000, null, handleTimeout)
-			pn.addEventListener(PnEvent.TIME, asyncFun, false, 0, true);
-		}
-		
-		public function RequestTime():void
-		{
-			pn.time();
+			this.asyncFun =  Async.asyncHandler(this, handleIntendedResult,1000, null, handleTimeout);
+			pn.addEventListener(PnEvent.INIT,asyncFun, false, 0, true);
 		}
 		
 		public function handleIntendedResult(e:PnEvent,  passThroughData:Object):void
 		{
-			switch (e.status) {
-				case OperationStatus.DATA:
-					var resultToken:String = e.data[0];
-					var curentDateTime:Date = new Date();
-					var currentTimestamp:Number = curentDateTime.time*10000;
-					var timeOffSet:Number = Math.abs(currentTimestamp-Number(resultToken));
-					Assert.assertTrue(timeOffSet<24*3600*10000);
-					break;
-				
-				case OperationStatus.ERROR:
-					Assert.fail("Time() did not return correct value but error out");
-					break;
-			}
+			//UUID longer than 10
+			Assert.assertTrue(pn.sessionUUID.length>10);	
 		}
 		
 		public function handleTimeout(passThroughData:Object):void
 		{
-			Assert.fail("Time() request timeout");
+			Assert.fail("PN init timeout");
 		}		
 	}
 }

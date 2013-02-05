@@ -21,29 +21,24 @@ package flexUnitTests
 	import org.flexunit.token.AsyncTestToken;
 	
 	
-	public class TestTime
+	public class TestSubscribePresence
 	{		
 		public var pn:Pn;
+		public var singleChannel:String = "single_test";
 		public var asyncFun:Function;
 		
 		[Before(async)]
 		public function setUp():void
 		{
-			this.pn = Pn.instance;
-			PrepareTesting.PnConfig(this.pn);
-			
-			//Pn.init process should be done
-			//in 500 minseconds
-			//Async.proceedOnEvent(this, pn, PnEvent.INIT, 500); 
-			
-			Async.delayCall(this, RequestTime, 500);
+			pn = Pn.instance;
+			PrepareTesting.PnConfig(pn);
+			Async.delayCall(this, requestSubscribe, 2000);
 		}
 		
 		[After(async)]
 		public function tearDown():void
 		{
-			pn.removeEventListener(PnEvent.TIME, asyncFun, false);
-			var a:Boolean = pn.hasEventListener(PnEvent.TIME);
+			this.pn.removeEventListener(PnEvent.SUBSCRIBE, asyncFun, false);
 		}
 		
 		[BeforeClass]
@@ -57,37 +52,28 @@ package flexUnitTests
 		}
 		
 		[Test(async, timeout=5000)]
-		public function TestTimeToken():void
+		public function TestSubscribeSingle():void
 		{
-			asyncFun = Async.asyncHandler(this, handleIntendedResult, 2000, null, handleTimeout)
-			pn.addEventListener(PnEvent.TIME, asyncFun, false, 0, true);
+			this.asyncFun = Async.asyncHandler(this, handleIntendedResult,2000, null, handleTimeout);
+			pn.addEventListener(PnEvent.SUBSCRIBE, asyncFun, false, 0, true);
 		}
 		
-		public function RequestTime():void
+		private function requestSubscribe():void
 		{
-			pn.time();
+			pn.unsubscribeAll();
+			pn.subscribe(this.singleChannel);
 		}
 		
 		public function handleIntendedResult(e:PnEvent,  passThroughData:Object):void
 		{
-			switch (e.status) {
-				case OperationStatus.DATA:
-					var resultToken:String = e.data[0];
-					var curentDateTime:Date = new Date();
-					var currentTimestamp:Number = curentDateTime.time*10000;
-					var timeOffSet:Number = Math.abs(currentTimestamp-Number(resultToken));
-					Assert.assertTrue(timeOffSet<24*3600*10000);
-					break;
-				
-				case OperationStatus.ERROR:
-					Assert.fail("Time() did not return correct value but error out");
-					break;
-			}
+			var channelArray:Array =  Pn.getSubscribeChannels();
+			Assert.assertEquals(channelArray.length, 1);
+			Assert.assertEquals(channelArray[0], this.singleChannel);
 		}
 		
 		public function handleTimeout(passThroughData:Object):void
 		{
-			Assert.fail("Time() request timeout");
+			Assert.fail("subscribe timeout");
 		}		
 	}
 }
