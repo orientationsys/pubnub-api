@@ -14,5 +14,7 @@ package flexUnitTests
 		public var test4:TestUUID;
 		public var test5:TestSubscribePresence;
 		public var test6:TestSubscribePresenceMultiple;
+		public var test7:TestSubscribeWithToken;
+		public var test8:TestPublish;
 	}
 }
