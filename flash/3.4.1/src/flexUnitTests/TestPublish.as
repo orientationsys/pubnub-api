@@ -24,12 +24,16 @@ package flexUnitTests
 	public class TestPublish
 	{		
 		public var pn:Pn;
-		public var singleChannel:String = "single_test";
+		public var singleChannel:String;
 		public var asyncFun:Function;
+		
+		private var messageUnicode:String = "中文";
 		
 		[Before(async)]
 		public function setUp():void
 		{
+			//make sure the channel label is unque so other listener wont be there
+			singleChannel = PrepareTesting.CreateUnqueChannel();
 			pn = Pn.instance;
 			PrepareTesting.PnConfig(pn);
 			Async.delayCall(this, requestSubscribe, 2000);
@@ -52,10 +56,10 @@ package flexUnitTests
 		{
 		}
 		
-		[Test(async, timeout=5000)]
+		[Test(async, timeout=50000)]
 		public function TestSubscribeSingle():void
 		{
-			this.asyncFun = Async.asyncHandler(this, handleIntendedResult,2000, null, handleTimeout);
+			this.asyncFun = Async.asyncHandler(this, handleIntendedResult,20000, null, handleTimeout);
 			pn.addEventListener(PnEvent.PUBLISH, asyncFun, false, 0, true);
 		}
 		
@@ -67,7 +71,7 @@ package flexUnitTests
 		
 		private function PublishMessage():void
 		{
-			Pn.publish({channel : this.singleChannel, message : "hello, world"});
+			Pn.publish({channel : this.singleChannel, message : messageUnicode});
 		}
 		
 		public function handleIntendedResult(e:PnEvent,  passThroughData:Object):void

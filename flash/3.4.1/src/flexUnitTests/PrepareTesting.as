@@ -17,5 +17,10 @@ package flexUnitTests
 			
 			Pn.init(config);
 		}
+		
+		public static function CreateUnqueChannel():String
+		{
+			return "single"+ (Math.random()*1000).toString() + (Math.random()*1000).toString() + (new Date().time).toString()
+		}
 	}
 }

@@ -979,7 +979,9 @@ package com.adobe.net
 			// We can just use the default AS function.  It seems to
 			// decode everything correctly
 			var unescaped:String;
+			trace('escaped:'+escaped);
 			unescaped = decodeURIComponent(escaped);
+			
 			return unescaped;
 		}
 		

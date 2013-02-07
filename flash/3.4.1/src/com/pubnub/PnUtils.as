@@ -53,7 +53,9 @@ package com.pubnub {
 		 * @return
 		 */
 		public static function encode(args:String):String{
-			return escape(args);
+			return encodeURIComponent(args);
+ 
+			//return escape(args);
 			
 		}
 	}

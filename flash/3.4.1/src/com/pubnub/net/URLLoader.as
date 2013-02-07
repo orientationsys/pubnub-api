@@ -50,7 +50,7 @@ public class URLLoader extends EventDispatcher {
     public function load(request:URLRequest):void {
         this.request = request;
         uri = new URI(request.url);
-        //trace(request.url);
+        trace(request.url);
         socket = getSocket(request.url);
         destroyRESPONSE();
         sendRequest(request);
@@ -247,6 +247,7 @@ public class URLLoader extends EventDispatcher {
      */
     protected function sendRequest(request:URLRequest):void {
         if (ready) {
+			trace(request.url);
             doSendRequest(request);
         } else {
             connect(request);

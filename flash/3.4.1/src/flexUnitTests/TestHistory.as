@@ -21,11 +21,16 @@ package flexUnitTests
 	import org.flexunit.token.AsyncTestToken;
 	
 	
-	public class TestSubscribePresence
+	public class TestHistory
 	{		
 		public var pn:Pn;
 		public var singleChannel:String;
 		public var asyncFun:Function;
+		
+		
+		private var message1:String = "hello, world";
+		private var message2:String = "hello, world2";
+		private var message3:String = "中文";
 		
 		[Before(async)]
 		public function setUp():void
@@ -54,23 +59,56 @@ package flexUnitTests
 		}
 		
 		[Test(async, timeout=5000)]
-		public function TestSubscribeSingle():void
+		public function TestHistoryInOrder():void
 		{
-			this.asyncFun = Async.asyncHandler(this, handleIntendedResult,2000, null, handleTimeout);
-			pn.addEventListener(PnEvent.SUBSCRIBE, asyncFun, false, 0, true);
+			this.asyncFun = Async.asyncHandler(this, handleIntendedResult,10000, null, handleTimeout);
+			pn.addEventListener(PnEvent.DETAILED_HISTORY, asyncFun, false, 0, true);
 		}
 		
 		private function requestSubscribe():void
 		{
 			pn.unsubscribeAll();
 			pn.subscribe(this.singleChannel);
+			Async.delayCall(this, SendFirstMessage, 2000);
+		}
+		
+		private function SendFirstMessage():void
+		{
+			Pn.publish({channel : this.singleChannel, message : message1});
+			Async.delayCall(this, SendSecondMessage, 2000);
+		}
+		
+		private function SendSecondMessage():void
+		{
+			Pn.publish({channel : this.singleChannel, message : message2});
+			Async.delayCall(this, SendThirdMessage, 2000);
+		}
+		
+		private function SendThirdMessage():void
+		{
+			Pn.publish({channel : this.singleChannel, message : message3});
+			Async.delayCall(this, fetchHistory, 2000);
+		}
+		
+		private function fetchHistory():void
+		{
+			var args:Object = { };
+			args.start = null;
+			args.end = null;
+			args.count = null;
+			args.reverse = false;
+			args.channel = this.singleChannel;
+			args['sub-key'] = pn.subscribeKey;
+			Pn.instance.detailedHistory(args);
 		}
 		
 		public function handleIntendedResult(e:PnEvent,  passThroughData:Object):void
 		{
-			var channelArray:Array =  Pn.getSubscribeChannels();
-			Assert.assertEquals(channelArray.length, 1);
-			Assert.assertEquals(channelArray[0], this.singleChannel);
+			var messageDataArray:Array = e.data as Array;
+			Assert.assertEquals(messageDataArray.length, 3);
+			Assert.assertEquals(messageDataArray[0][1], '{"text":"'+message1+'"}');
+			Assert.assertEquals(messageDataArray[1][1], '{"text":"'+message2+'"}');
+			Assert.assertEquals(messageDataArray[2][1], '{"text":"'+message3+'"}');
 		}
 		
 		public function handleTimeout(passThroughData:Object):void

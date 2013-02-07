@@ -45,6 +45,8 @@ package com.pubnub {
 			setup();
 		}
 		
+		
+		
 		private function setup():void {
 			
 			operationsFactory = new Dictionary();
